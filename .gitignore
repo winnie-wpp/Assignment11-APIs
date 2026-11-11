@@ -1,0 +1,6 @@
+.DS_Store
+.venv/
+keys/
+*.mp3
+*.mp4
+.cache

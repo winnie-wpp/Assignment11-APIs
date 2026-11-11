@@ -1,6 +1,4 @@
 import requests
-from google.oauth2 import service_account
-from google.auth.transport.requests import Request
 import json
 from datetime import datetime
 
@@ -18,26 +16,35 @@ my_params = {
 # 1. “What planes are over New York right now?
 response = requests.get(url, params=my_params) # add the box to the URL and store in response
 data = response.json() # turn the reply into Python dictionary
-print(data)
+# print(data)
 
 # take data and save it as a proper json file
 with open("planes.json", "w") as f:
     json.dump(data, f, indent=2) 
 
 # the dictionary has two keys: 'time' and 'states'
-planes = data['states'] or [] # the list of planes is in the 'states' key
+all_planes = data['states'] or [] # the list of planes is in the 'states' key
 snapshot = datetime.fromtimestamp(data['time']) # fomrat the timestamp into a datetime object
 formatted_time = snapshot.strftime("%Y-%m-%d %I:%M %p")
 
-print(f"Found {len(planes)} planes at {formatted_time}")
+print(f"Found {len(all_planes)} planes at {formatted_time}")
 
-plane = next(p for p in planes if p[6] is not None and p[8] == False)   # one folder: first plane with a location
+# picks the first plane that has a location and is flying.
+plane = None # start with no plane picked
+for p in all_planes: # look at each plane
+    if p[6] is None: # no latitude / location? skip it
+        continue
+    if p[8] == True: # on the ground / landed? skip it
+        continue
+    plane = p
+    break
+# plane = next(p for p in planes if p[6] is not None and p[8] == False)
 print("picked:", plane[0], plane[1])
 
 
 
 
-
+# 2. “What path is this one plane flying right now?”
 track_url = "https://opensky-network.org/api/tracks/all"
 track_params = {
     'icao24': plane[0].lower(),
